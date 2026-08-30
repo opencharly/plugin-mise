@@ -21,8 +21,8 @@ plugin-mise:
               context:
                 - build
               command: "true"
-            - check: the mise plugin ships its self-contained CUE schema (the served #MiseInput authoring contract; the schema splice is unit-tested by TestNewMeta_SchemaSplices)
+            - check: the mise plugin ships its self-contained CUE schema (the served #MiseInput authoring contract)
               id: mise-schema-present
               context:
                 - build
-              command: "true"
+              command: test -f schema/mise.cue
