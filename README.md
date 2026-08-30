@@ -14,3 +14,9 @@ support in charly per [PLAN-mise.md](../PLAN-mise.md).
 
 Dual-placement by construction: compiled-in (`compiled_plugins:`) or
 out-of-process over go-plugin gRPC (`cmd/serve`).
+
+## R10 bed
+
+`charly check run check-mise-pod` (disposable: true) proves the builder + verb
+legs end to end: the builder stage provisions mise, the `mise:` verb step
+installs node@22, and the checks verify mise + node resolve via the shims.
