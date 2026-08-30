@@ -90,7 +90,21 @@ ubuntu-builder:
         produce: [mise]
         candy:
             - curl-tar
-        description: Ubuntu stage base for the mise builder (curl+tar toolchain).
+        description: Ubuntu 24.04 stage base for the mise builder (curl+tar toolchain).
+ubuntu-2604-builder:
+    candy:
+        version: 2026.242.0000
+        base: ubuntu:26.04
+        distro: [ubuntu-26.04, ubuntu]
+        build: [deb]
+        produce: [mise]
+        candy:
+            - curl-tar
+        description: Ubuntu 26.04 LTS stage base for the mise builder (curl+tar toolchain; entity name dot-free — dots are reserved for dotted-path addressing).
+        plan:
+            - check: the toolchain the mise stage needs is present
+              id: ubuntu-2604-toolchain-present
+              command: curl --version
 # -----------------------------------------------------------------------------
 # Bed images (distro base + builder map + the shared consumer)
 check-mise-alpine:
@@ -149,6 +163,15 @@ check-mise-ubuntu:
 
         builder:
             mise: ubuntu-builder
+        candy:
+            - mise-consumer
+check-mise-ubuntu-2604:
+    candy:
+        base: ubuntu:26.04
+        distro: [ubuntu-26.04, ubuntu]
+
+        builder:
+            mise: ubuntu-2604-builder
         candy:
             - mise-consumer
 # -----------------------------------------------------------------------------
@@ -236,7 +259,7 @@ check-mise-ubuntu-pod:
         image: check-mise-ubuntu
         disposable: true
         lifecycle: dev
-        description: Ubuntu mise bed — the DETECTION path on ubuntu.
+        description: Ubuntu 24.04 mise bed — the DETECTION path on ubuntu.
         plan:
             - check: mise is on PATH in the running pod
               id: pod-mise-on-path
@@ -244,3 +267,17 @@ check-mise-ubuntu-pod:
             - check: the stage-installed tool resolves via the shims in the running pod
               id: pod-stage-tool-via-shims
               command: zig version
+check-mise-ubuntu-2604-pod:
+    pod:
+        image: check-mise-ubuntu-2604
+        disposable: true
+        lifecycle: dev
+        description: Ubuntu 26.04 LTS mise bed — the DETECTION path on ubuntu 26.04.
+        plan:
+            - check: mise is on PATH in the running pod
+              id: pod-mise-on-path
+              command: mise --version
+            - check: the stage-installed tool resolves via the shims in the running pod
+              id: pod-stage-tool-via-shims
+              command: zig version
+
