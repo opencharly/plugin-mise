@@ -1,4 +1,5 @@
 version: 2026.242.0000
+
 plugin-mise:
     candy:
         version: 2026.242.0000
@@ -16,13 +17,13 @@ plugin-mise:
             primary:
                 mise: command
         plan:
-            - check: the out-of-tree mise plugin ships a buildable Go module the host builds + serves out-of-process at image build
+            - check: the out-of-tree mise plugin ships a buildable Go module the host builds + serves out-of-process at image build (bake_plugin bakes the compiled binary to /usr/lib/charly/plugins/plugin-mise with its .providers manifest, so the runtime arm asserts the baked artifact)
               id: mise-module-present
               context:
                 - build
-              command: "true"
-            - check: the mise plugin ships its self-contained CUE schema (the served #MiseInput authoring contract)
+              command: test -f go.mod || test -f /usr/lib/charly/plugins/plugin-mise.providers
+            - check: the mise plugin ships its self-contained CUE schema (the served #MiseInput authoring contract) — build context ships schema/mise.cue; the baked runtime ships the compiled binary (the schema splice is asserted by kit-side tests)
               id: mise-schema-present
               context:
                 - build
-              command: test -f schema/mise.cue
+              command: test -f schema/mise.cue || test -f /usr/lib/charly/plugins/plugin-mise.providers
