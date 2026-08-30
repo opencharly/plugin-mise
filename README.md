@@ -17,6 +17,10 @@ out-of-process over go-plugin gRPC (`cmd/serve`).
 
 ## R10 bed
 
-`charly check run check-mise-pod` (disposable: true) proves the builder + verb
-legs end to end: the builder stage provisions mise, the `mise:` verb step
-installs node@22, and the checks verify mise + node resolve via the shims.
+`charly check run check-mise-<distro>-pod` (disposable, one per distro charly
+supports) proves the builder + verb legs end to end: the builder stage
+provisions mise, the detection path installs zig from the shared consumer's
+mise.toml, the `mise:` verb step installs go@1.25, and the checks verify
+mise + the tools resolve via the shims. The fixture tools ship official
+libc-agnostic prebuilds (zig and go are fully static), so the same bed passes on
+glibc AND musl (Alpine) bases.
