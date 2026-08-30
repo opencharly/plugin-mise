@@ -90,7 +90,17 @@ ubuntu-builder:
         produce: [mise]
         candy:
             - curl-tar
-        description: Ubuntu stage base for the mise builder (curl+tar toolchain).
+        description: Ubuntu 24.04 stage base for the mise builder (curl+tar toolchain).
+ubuntu-26.04-builder:
+    candy:
+        version: 2026.242.0000
+        base: ubuntu:26.04
+        distro: [ubuntu-26.04, ubuntu]
+        build: [deb]
+        produce: [mise]
+        candy:
+            - curl-tar
+        description: Ubuntu 26.04 LTS stage base for the mise builder (curl+tar toolchain).
 # -----------------------------------------------------------------------------
 # Bed images (distro base + builder map + the shared consumer)
 check-mise-alpine:
@@ -149,6 +159,15 @@ check-mise-ubuntu:
 
         builder:
             mise: ubuntu-builder
+        candy:
+            - mise-consumer
+check-mise-ubuntu-26.04:
+    candy:
+        base: ubuntu:26.04
+        distro: [ubuntu-26.04, ubuntu]
+
+        builder:
+            mise: ubuntu-26.04-builder
         candy:
             - mise-consumer
 # -----------------------------------------------------------------------------
@@ -236,7 +255,13 @@ check-mise-ubuntu-pod:
         image: check-mise-ubuntu
         disposable: true
         lifecycle: dev
-        description: Ubuntu mise bed — the DETECTION path on ubuntu.
+        description: Ubuntu 24.04 mise bed — the DETECTION path on ubuntu.
+check-mise-ubuntu-26.04-pod:
+    pod:
+        image: check-mise-ubuntu-26.04
+        disposable: true
+        lifecycle: dev
+        description: Ubuntu 26.04 LTS mise bed — the DETECTION path on ubuntu 26.04.
         plan:
             - check: mise is on PATH in the running pod
               id: pod-mise-on-path
