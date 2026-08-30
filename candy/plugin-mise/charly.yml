@@ -1,0 +1,28 @@
+version: 2026.242.0000
+plugin-mise:
+    candy:
+        version: 2026.242.0000
+        description: |-
+            The mise builder + verb plugin: provisions the mise dev-tool manager
+            (jdx/mise) into images via a build-time multi-stage (builder:mise,
+            OpResolve) and runs mise commands as plan steps (verb:mise — OpEmit at
+            image build, OpExecute at check/deploy). A candy selects the builder
+            with `external_builder: mise`; a plan step runs `mise: <command>`.
+        plugin:
+            providers:
+                - builder:mise
+                - verb:mise
+            source: github.com/opencharly/plugin-mise/candy/plugin-mise
+            primary:
+                mise: command
+        plan:
+            - check: the out-of-tree mise plugin ships a buildable Go module the host builds + serves out-of-process at image build
+              id: mise-module-present
+              context:
+                - build
+              command: "true"
+            - check: the mise plugin ships its self-contained CUE schema (the served #MiseInput authoring contract)
+              id: mise-schema-present
+              context:
+                - build
+              command: test -f schema/mise.cue

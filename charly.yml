@@ -1,0 +1,46 @@
+# Makes this plugin repo a PROJECT so its own candy is actually gated.
+#
+# Without a root charly.yml the repo is "project-less": charly scans NO candies at all,
+# so `charly box validate` at the repo root exits 0 on ANY manifest, including one with
+# a malformed `plugin.providers` entry.
+#
+# Declaring discover: is the whole fix: the candy is scanned, the CUE schema gate
+# applies, and the STOCK `charly box validate` step starts working with no workflow
+# change. This file declares no entities of its own - it only tells charly where to look.
+version: 2026.240.1943
+defaults:
+    platform:
+        - linux/amd64
+    tag: auto
+    registry: ghcr.io/opencharly
+    build:
+        - rpm
+discover:
+    - path: candy
+      recursive: true
+check-mise:
+    candy:
+        base: quay.io/fedora/fedora:43
+        description: |-
+            The check-mise bed image — composes the mise-consumer layer
+            (external_builder: mise + a mise: verb step) so the builder leg and the
+            verb leg are proven end to end in one image.
+        candy:
+            - mise-consumer
+check-mise-pod:
+    pod:
+        image: check-mise
+        disposable: true
+        lifecycle: dev
+        description: |-
+            Disposable R10 bed proving builder:mise + verb:mise — builds the
+            check-mise image (mise provisioned by the builder stage, node installed
+            by the mise: verb step), deploys it, and checks mise + node resolve via
+            the shims.
+        plan:
+            - check: the mise binary provisioned by the builder stage is on PATH in the running pod
+              id: pod-mise-on-path
+              command: mise --version
+            - check: node installed by the mise verb resolves via the shims in the running pod
+              id: pod-node-via-shims
+              command: node --version

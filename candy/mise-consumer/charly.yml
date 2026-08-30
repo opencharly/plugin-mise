@@ -1,0 +1,27 @@
+mise-consumer:
+    candy:
+        version: 2026.242.0000
+        description: |-
+            Consumer candy for the builder:mise + verb:mise legs. It SELECTS the
+            out-of-tree external builder via `external_builder: mise`, so at image
+            build charly's build-path plugin connect + emitExternalBuilderStages seam
+            host-builds + connects candy/plugin-mise out-of-process, Invokes its
+            OpResolve, and splices the returned multi-stage block (pre-main-FROM) + the
+            COPY --from artifacts (post-main-FROM) into the generated Containerfile —
+            baking the mise binary, the shims, and /etc/mise/config.toml into the
+            image. The `mise:` verb step then installs node@22 (mise use writes
+            /mise.toml, installs, reshims), and the runtime checks prove both legs.
+        external_builder: mise
+        env:
+            MISE_DATA_DIR: /usr/local/share/mise
+        path_append:
+            - /usr/local/share/mise/shims
+        plan:
+            - run: install node via the mise verb (mise use writes /mise.toml, installs, reshims)
+              mise: {command: use, tool: node@22}
+            - check: the mise binary provisioned by the builder stage is on PATH
+              id: mise-on-path
+              command: mise --version
+            - check: node installed by the mise verb resolves via the shims
+              id: node-via-shims
+              command: node --version
