@@ -2,26 +2,31 @@ mise-consumer:
     candy:
         version: 2026.242.0000
         description: |-
-            Consumer candy for the builder:mise + verb:mise legs. It SELECTS the
-            out-of-tree external builder via `external_builder: mise`, so at image
-            build charly's build-path plugin connect + emitExternalBuilderStages seam
-            host-builds + connects candy/plugin-mise out-of-process, Invokes its
-            OpResolve, and splices the returned multi-stage block (pre-main-FROM) + the
-            COPY --from artifacts (post-main-FROM) into the generated Containerfile —
-            baking the mise binary, the shims, and /etc/mise/config.toml into the
-            image. The `mise:` verb step then installs node@22 (mise use writes
-            /mise.toml, installs, reshims), and the runtime checks prove both legs.
-        external_builder: mise
-        env:
-            MISE_DATA_DIR: /usr/local/share/mise
-        path_append:
-            - /usr/local/share/mise/shims
+            Shared consumer candy for the mise check beds. It SHIPS a mise.toml so the
+            embedded builder: mise: vocabulary's detect_file auto-triggers the mise
+            builder (DETECTION path): the builder STAGE copies the config, runs
+            `mise install` in-stage, and the artifacts (installs + shims + config)
+            land in the image. The `mise:` verb step (OpEmit) installs bun in the
+            image, and the checks prove the stage install (zig), the verb install
+            (go), mise on PATH, and the verb's OpExecute leg (mise ls). The fixture
+            tools ship official prebuilds that need no libc at all (zig ships
+            fully-static tarballs; the Go distribution is pure static) so the SAME
+            config installs on glibc AND musl bases (Alpine) — mise's python/node
+            backends compile from source on musl where no C toolchain exists.
+        bake_plugin:
+            - "@github.com/opencharly/plugin-mise/candy/plugin-mise:v2026.242.1251"
         plan:
-            - run: install node via the mise verb (mise use writes /mise.toml, installs, reshims)
-              mise: {command: use, tool: node@22}
-            - check: the mise binary provisioned by the builder stage is on PATH
+            - run: install go via the mise verb (OpEmit — mise use writes the config, installs, reshims)
+              mise: {command: use, tool: go@1.25}
+            - check: the tool installed by the builder STAGE resolves via the shims
+              id: stage-tool-via-shims
+              command: zig version
+            - check: the tool installed by the mise VERB resolves via the shims
+              id: verb-tool-via-shims
+              command: go version
+            - check: mise is on PATH
               id: mise-on-path
               command: mise --version
-            - check: node installed by the mise verb resolves via the shims
-              id: node-via-shims
-              command: node --version
+            - check: mise ls runs at runtime (the OpExecute shell — the external-plugin verb dispatch itself is exercised by the unit tests + the OpEmit verb step)
+              id: mise-ls-runtime
+              command: mise ls

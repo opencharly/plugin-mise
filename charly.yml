@@ -18,29 +18,229 @@ defaults:
 discover:
     - path: candy
       recursive: true
-check-mise:
+# =============================================================================
+# Per-distro mise check beds — one for EVERY distro charly supports (alpine,
+# arch, cachyos, omarchy, debian, fedora, ubuntu). Each bed proves the
+# DETECTION path on its distro: the shared mise-consumer ships a mise.toml →
+# the embedded builder: mise: vocabulary's detect_file auto-triggers the mise
+# builder; the builder STAGE (distro-agnostic — FROM the image's builder box)
+# installs the tools; the mise: verb step + checks prove the verb legs. The
+# builder boxes are the stage bases (distro base + the curl-tar toolchain the
+# stage needs); the stage itself never names a distro.
+# -----------------------------------------------------------------------------
+# Builder boxes (the stage bases)
+alpine-builder:
     candy:
+        version: 2026.242.0000
+        base: alpine:3.24
+        distro: [alpine:3.24, alpine]
+        build: [apk]
+        produce: [mise]
+        candy:
+            - curl-tar
+        description: Alpine stage base for the mise builder (curl+tar toolchain).
+arch-builder:
+    candy:
+        version: 2026.242.0000
+        base: archlinux:latest
+        distro: [arch]
+        build: [pac]
+        produce: [mise]
+        candy:
+            - curl-tar
+        description: Arch stage base for the mise builder (curl+tar toolchain).
+cachyos-builder:
+    candy:
+        version: 2026.242.0000
+        base: docker.io/cachyos/cachyos-v3@sha256:2f87e702822dc3bc1c527215ace3f7b1b20c5d9d4171bb78e012557be477d487
+        produce: [mise]
+        description: CachyOS stage base for the mise builder (curl+tar toolchain).
+omarchy-builder:
+    candy:
+        version: 2026.242.0000
+        base: archlinux:latest
+        distro: [omarchy, arch]
+        build: [pac]
+        produce: [mise]
+        candy:
+            - curl-tar
+        description: Omarchy stage base for the mise builder (curl+tar toolchain).
+debian-builder:
+    candy:
+        version: 2026.242.0000
+        base: debian:13
+        distro: [debian:13, debian]
+        build: [deb]
+        produce: [mise]
+        candy:
+            - curl-tar
+        description: Debian stage base for the mise builder (curl+tar toolchain).
+fedora-builder:
+    candy:
+        version: 2026.242.0000
         base: quay.io/fedora/fedora:43
-        description: |-
-            The check-mise bed image — composes the mise-consumer layer
-            (external_builder: mise + a mise: verb step) so the builder leg and the
-            verb leg are proven end to end in one image.
+        produce: [mise]
+        description: Fedora stage base for the mise builder (curl+tar toolchain).
+ubuntu-builder:
+    candy:
+        version: 2026.242.0000
+        base: ubuntu:24.04
+        distro: [ubuntu:24.04, ubuntu]
+        build: [deb]
+        produce: [mise]
+        candy:
+            - curl-tar
+        description: Ubuntu stage base for the mise builder (curl+tar toolchain).
+# -----------------------------------------------------------------------------
+# Bed images (distro base + builder map + the shared consumer)
+check-mise-alpine:
+    candy:
+        base: alpine:3.24
+
+        builder:
+            mise: alpine-builder
         candy:
             - mise-consumer
-check-mise-pod:
+check-mise-arch:
+    candy:
+        base: archlinux:latest
+
+        builder:
+            mise: arch-builder
+        candy:
+            - mise-consumer
+check-mise-cachyos:
+    candy:
+        base: docker.io/cachyos/cachyos-v3@sha256:2f87e702822dc3bc1c527215ace3f7b1b20c5d9d4171bb78e012557be477d487
+
+        builder:
+            mise: cachyos-builder
+        candy:
+            - mise-consumer
+check-mise-omarchy:
+    candy:
+        base: archlinux:latest
+
+        builder:
+            mise: omarchy-builder
+        candy:
+            - mise-consumer
+check-mise-debian:
+    candy:
+        base: debian:13
+        distro: [debian:13, debian]
+
+        builder:
+            mise: debian-builder
+        candy:
+            - mise-consumer
+check-mise-fedora:
+    candy:
+        base: quay.io/fedora/fedora:43
+
+        builder:
+            mise: fedora-builder
+        candy:
+            - mise-consumer
+check-mise-ubuntu:
+    candy:
+        base: ubuntu:24.04
+        distro: [ubuntu:24.04, ubuntu]
+
+        builder:
+            mise: ubuntu-builder
+        candy:
+            - mise-consumer
+# -----------------------------------------------------------------------------
+# Disposable R10 pods
+check-mise-alpine-pod:
     pod:
-        image: check-mise
+        image: check-mise-alpine
         disposable: true
         lifecycle: dev
-        description: |-
-            Disposable R10 bed proving builder:mise + verb:mise — builds the
-            check-mise image (mise provisioned by the builder stage, node installed
-            by the mise: verb step), deploys it, and checks mise + node resolve via
-            the shims.
+        description: Alpine mise bed — the DETECTION path (stage installs zig, the verb installs bun) on alpine. mise runs on musl via the sdk -musl release probe; the fixture tools ship official static/musl prebuilds (no C toolchain needed).
         plan:
-            - check: the mise binary provisioned by the builder stage is on PATH in the running pod
+            - check: mise is on PATH in the running pod
               id: pod-mise-on-path
               command: mise --version
-            - check: node installed by the mise verb resolves via the shims in the running pod
-              id: pod-node-via-shims
-              command: node --version
+            - check: the stage-installed tool resolves via the shims in the running pod
+              id: pod-stage-tool-via-shims
+              command: zig version
+check-mise-arch-pod:
+    pod:
+        image: check-mise-arch
+        disposable: true
+        lifecycle: dev
+        description: Arch mise bed — the DETECTION path on arch.
+        plan:
+            - check: mise is on PATH in the running pod
+              id: pod-mise-on-path
+              command: mise --version
+            - check: the stage-installed tool resolves via the shims in the running pod
+              id: pod-stage-tool-via-shims
+              command: zig version
+check-mise-cachyos-pod:
+    pod:
+        image: check-mise-cachyos
+        disposable: true
+        lifecycle: dev
+        description: CachyOS mise bed — the DETECTION path on cachyos.
+        plan:
+            - check: mise is on PATH in the running pod
+              id: pod-mise-on-path
+              command: mise --version
+            - check: the stage-installed tool resolves via the shims in the running pod
+              id: pod-stage-tool-via-shims
+              command: zig version
+check-mise-omarchy-pod:
+    pod:
+        image: check-mise-omarchy
+        disposable: true
+        lifecycle: dev
+        description: Omarchy mise bed — the DETECTION path on omarchy.
+        plan:
+            - check: mise is on PATH in the running pod
+              id: pod-mise-on-path
+              command: mise --version
+            - check: the stage-installed tool resolves via the shims in the running pod
+              id: pod-stage-tool-via-shims
+              command: zig version
+check-mise-debian-pod:
+    pod:
+        image: check-mise-debian
+        disposable: true
+        lifecycle: dev
+        description: Debian mise bed — the DETECTION path on debian.
+        plan:
+            - check: mise is on PATH in the running pod
+              id: pod-mise-on-path
+              command: mise --version
+            - check: the stage-installed tool resolves via the shims in the running pod
+              id: pod-stage-tool-via-shims
+              command: zig version
+check-mise-fedora-pod:
+    pod:
+        image: check-mise-fedora
+        disposable: true
+        lifecycle: dev
+        description: Fedora mise bed — the DETECTION path on fedora.
+        plan:
+            - check: mise is on PATH in the running pod
+              id: pod-mise-on-path
+              command: mise --version
+            - check: the stage-installed tool resolves via the shims in the running pod
+              id: pod-stage-tool-via-shims
+              command: zig version
+check-mise-ubuntu-pod:
+    pod:
+        image: check-mise-ubuntu
+        disposable: true
+        lifecycle: dev
+        description: Ubuntu mise bed — the DETECTION path on ubuntu.
+        plan:
+            - check: mise is on PATH in the running pod
+              id: pod-mise-on-path
+              command: mise --version
+            - check: the stage-installed tool resolves via the shims in the running pod
+              id: pod-stage-tool-via-shims
+              command: zig version

@@ -1,0 +1,12 @@
+curl-tar:
+    candy:
+        version: 2026.242.0000
+        description: |-
+            The curl+tar+gzip toolchain the mise builder stage needs (the stage
+            downloads the pinned mise release). Composed into the per-distro
+            builder boxes; the package names resolve per the image's distro.
+        package: [curl, tar, gzip]
+        plan:
+            - check: the toolchain is present
+              id: curl-tar-present
+              command: curl --version
