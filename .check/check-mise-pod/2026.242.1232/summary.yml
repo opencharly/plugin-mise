@@ -1,0 +1,49 @@
+bed: check-mise-pod
+calver: 2026.242.1232
+steps:
+  - name: image-build
+    duration_seconds: 5
+    ok: false
+    diagnostics:
+      errors: 3
+      warnings: 0
+      allowlisted: 1
+      cache_hits: 4
+      cache_steps: 9
+      findings:
+        - severity: error
+          count: 1
+          pattern: logrus-level
+          first_line: 24
+          text: "time=\"N-N-NTN:N:N+N:N\" level=error msg=\"error unmounting container: unmounting build container \\\"\\\": layer not known\""
+        - severity: error
+          count: 1
+          pattern: severity-prefix
+          first_line: 25
+          text: "Error: building at STEP \"RUN { [ -L /usr/local ] && mkdir -p \"$(readlink /usr/local)\"; mkdir -p /usr/local/bin; } && ARCH=$(uname -m) && case \"$ARCH\" in xN_N) ARCH=amdN;; aarchN) ARCH=armN;; esac && T…"
+        - severity: error
+          count: 1
+          pattern: severity-prefix
+          first_line: 26
+          text: "charly: error: command \"build\": building check-mise: podman build failed: exit status N"
+        - severity: warning
+          count: 1
+          pattern: severity-prefix
+          first_line: 1
+          allowlisted: dev-worktree-binary-notice
+          text: "WARNING: charly is a dev/worktree build (not installed at /usr/bin or /usr/local/bin); NOT loading the installed package's plugins from /usr/lib/charly/plugins (they may be built against a different c…"
+total_seconds: 5
+diagnostics:
+  errors: 3
+  warnings: 0
+  allowlisted: 1
+  errors_fatal: true
+  warnings_fatal: false
+  cache_hits: 4
+  cache_steps: 9
+  allowlist_used:
+    - id: dev-worktree-binary-notice
+      severity: warning
+      suppressed: 1
+      why: "A dev/worktree charly binary (the in-development build every charly check bed installs via the charly-dev candy) is not at the FHS location that owns /usr/lib/charly/plugins, so it deliberately skips the installed package's plugins (built against a different charly version, issue #328) and says so once per process. Observed live in every check-charly-vm step log when the host has a packaged charly install. Informational dev-build behavior — not an error; suppressing it would mean silently loading plugins built against a different API version."
+ok: false

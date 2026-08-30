@@ -1,0 +1,81 @@
+# .build/check-mise/Containerfile (generated -- do not edit)
+
+ARG BASE_IMAGE=quay.io/fedora/fedora:43
+
+FROM scratch AS mise-consumer
+COPY candy/mise-consumer/ /
+
+FROM quay.io/fedora/fedora:43 AS mise-build
+USER root
+RUN dnf -y install --setopt=install_weak_deps=False curl tar gzip
+ENV MISE_DATA_DIR=/mise MISE_YES=1
+RUN A=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') && \
+    curl -sL -o /tmp/mise.tar.gz https://github.com/jdx/mise/releases/download/v2026.8.14/mise-v2026.8.14-linux-$A.tar.gz && \
+    tar xzf /tmp/mise.tar.gz -C /usr/local --strip-components=1 && rm /tmp/mise.tar.gz
+RUN mkdir -p /mise && mise reshim && mkdir -p /mise-out && cp -a /mise/. /mise-out/ && printf '[tools]\n' > /mise-out/config.toml
+
+FROM ${BASE_IMAGE}
+
+# Bootstrap
+RUN { [ -L /usr/local ] && mkdir -p "$(readlink /usr/local)"; mkdir -p /usr/local/bin; } && \
+    ARCH=$(uname -m) && \
+    case "$ARCH" in x86_64) ARCH=amd64;; aarch64) ARCH=arm64;; esac && \
+    TASK_URL="https://github.com/go-task/task/releases/latest/download/task_linux_${ARCH}.tar.gz" && \
+    (curl -fsSL "$TASK_URL" || wget -qO- "$TASK_URL") | tar -xzf - -C /usr/local/bin task
+
+RUN if ! getent passwd 1000 >/dev/null 2>&1; then \
+      LOGIN_SHELL=/bin/sh; [ -x /bin/bash ] && LOGIN_SHELL=/bin/bash; \
+      if command -v useradd >/dev/null 2>&1; then \
+        (getent group 1000 >/dev/null 2>&1 || groupadd -g 1000 user) && \
+        useradd -m -u 1000 -g 1000 -s "$LOGIN_SHELL" user; \
+      else \
+        (getent group 1000 >/dev/null 2>&1 || addgroup -g 1000 user) && \
+        adduser -D -h /home/user -u 1000 -G user -s "$LOGIN_SHELL" user; \
+      fi; \
+    fi
+
+WORKDIR /home/user
+
+# Layer environment variables
+ENV MISE_DATA_DIR="/usr/local/share/mise"
+ENV PATH="/usr/local/share/mise/shims:${PATH}"
+
+# Copy external_builder artifacts (mise)
+COPY --from=mise-build /usr/local/bin/mise /usr/local/bin/mise
+COPY --from=mise-build /mise-out/ /usr/local/share/mise/
+COPY --from=mise-build /mise-out/config.toml /etc/mise/config.toml
+
+# Layer: mise-consumer
+ARG TARGETARCH
+ENV ARCH=${TARGETARCH}
+RUN --mount=type=bind,from=mise-consumer,source=/,target=/ctx --mount=type=cache,id=charly-tmp-npm-cache-uid1000,dst=/tmp/npm-cache,uid=1000,gid=1000 sh -c 'SH=/bin/sh; [ -x /bin/bash ] && SH=/bin/bash; exec "$SH"' sh <<'OVCMD'
+BUILD_ARCH=$(uname -m)
+case "$BUILD_ARCH" in
+  x86_64) ARCH=amd64 ;;
+  aarch64) ARCH=arm64 ;;
+  armv7l|armv7|armhf) ARCH=arm ;;
+  *) ARCH=$BUILD_ARCH ;;
+esac
+export BUILD_ARCH ARCH
+set -e
+mise use node@22 && mise reshim
+OVCMD
+
+USER 1000
+# Image metadata
+LABEL ai.opencharly.version="2026.242.0000"
+LABEL ai.opencharly.box="check-mise"
+LABEL ai.opencharly.uid="1000"
+LABEL ai.opencharly.gid="1000"
+LABEL ai.opencharly.user="user"
+LABEL ai.opencharly.home="/home/user"
+LABEL ai.opencharly.registry="ghcr.io/opencharly"
+LABEL ai.opencharly.platform.format='["rpm"]'
+LABEL ai.opencharly.description='{"candy":[{"origin":"candy:mise-consumer","description":"Consumer candy for the builder:mise + verb:mise legs. It SELECTS the\nout-of-tree external builder via `external_builder: mise`, so at image\nbuild charly'\''s build-path plugin connect + emitExternalBuilderStages seam\nhost-builds + connects candy/plugin-mise out-of-process, Invokes its\nOpResolve, and splices the returned multi-stage block (pre-main-FROM) + the\nCOPY --from artifacts (post-main-FROM) into the generated Containerfile —\nbaking the mise binary, the shims, and /etc/mise/config.toml into the\nimage. The `mise:` verb step then installs node@22 (mise use writes\n/mise.toml, installs, reshims), and the runtime checks prove both legs.","plan":[{"run":"install node via the mise verb (mise use writes /mise.toml, installs, reshims)","plugin":"mise","plugin_input":{"command":"use","tool":"node@22"},"intent_do":"act"},{"check":"the mise binary provisioned by the builder stage is on PATH","plugin":"command","id":"mise-on-path","plugin_input":{"command":"mise --version"},"intent_do":"assert"},{"check":"node installed by the mise verb resolves via the shims","plugin":"command","id":"node-via-shims","plugin_input":{"command":"node --version"},"intent_do":"assert"}]}],"box":[{"origin":"box:check-mise","description":"The check-mise bed image — composes the mise-consumer layer\n(external_builder: mise + a mise: verb step) so the builder leg and the\nverb leg are proven end to end in one image."}]}'
+LABEL ai.opencharly.env_candy='{"MISE_DATA_DIR":"/usr/local/share/mise"}'
+LABEL ai.opencharly.path_append='["/usr/local/share/mise/shims"]'
+LABEL ai.opencharly.status="testing"
+LABEL ai.opencharly.check_level="noagent"
+LABEL ai.opencharly.info='The check-mise bed image — composes the mise-consumer layer; mise-consumer: Consumer candy for the builder:mise + verb:mise legs. It SELECTS the'
+LABEL ai.opencharly.candy_version='{"mise-consumer":"2026.242.0000"}'
+

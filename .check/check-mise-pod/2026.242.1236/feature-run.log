@@ -1,0 +1,9 @@
+WARNING: charly is a dev/worktree build (not installed at /usr/bin or /usr/local/bin); NOT loading the installed package's plugins from /usr/lib/charly/plugins (they may be built against a different charly version). Set CHARLY_PLUGIN_DIR to load plugins from a custom location.
+Resolved @github.com/opencharly/plugin-deploy-pod -> v2026.242.0932 (latest tag)
+Resolved @github.com/opencharly/plugin-vm -> v2026.242.0812 (latest tag)
+Feature run (deploy scope, deterministic-only): check-mise (container: charly-check-mise-pod)
+  SKIP  run install node via the mise verb (mise use writes /mise.toml, installs, reshims)  [plan:candy:mise-consumer:0]  skipped — run: install-timeline step (feature-run verifies, does not re-install)
+  PASS  check the mise binary provisioned by the builder stage is on PATH  [mise-on-path]  exit=0
+  PASS  check node installed by the mise verb resolves via the shims  [node-via-shims]  exit=0
+
+3 steps: 2 passed, 0 failed, 1 skipped

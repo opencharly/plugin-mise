@@ -1,0 +1,27 @@
+WARNING: charly is a dev/worktree build (not installed at /usr/bin or /usr/local/bin); NOT loading the installed package's plugins from /usr/lib/charly/plugins (they may be built against a different charly version). Set CHARLY_PLUGIN_DIR to load plugins from a custom location.
+
+--- Building check-mise ---
+[3/3] STEP 1/24: FROM quay.io/fedora/fedora-minimal:43
+[1/3] STEP 1/2: FROM scratch AS mise-consumer
+[2/3] STEP 1/6: FROM quay.io/fedora/fedora:43 AS mise-build
+[1/3] STEP 2/2: COPY candy/mise-consumer/ /
+--> Using cache f8663c43bef5a12b1e76780f27ec7851328185d63a52ebefa9384673ffe844ff
+--> f8663c43bef5
+[2/3] STEP 2/6: USER root
+[3/3] STEP 2/24: RUN { [ -L /usr/local ] && mkdir -p "$(readlink /usr/local)"; mkdir -p /usr/local/bin; } &&     ARCH=$(uname -m) &&     case "$ARCH" in x86_64) ARCH=amd64;; aarch64) ARCH=arm64;; esac &&     TASK_URL="https://github.com/go-task/task/releases/latest/download/task_linux_${ARCH}.tar.gz" &&     (curl -fsSL "$TASK_URL" || wget -qO- "$TASK_URL") | tar -xzf - -C /usr/local/bin task
+--> Using cache 9454fe5c0a03b285f4f4670db41027a96a295d360ed3acf5f281cd04e414a474
+--> 9454fe5c0a03
+[2/3] STEP 3/6: RUN dnf -y install --setopt=install_weak_deps=False curl tar gzip
+--> Using cache 0190624cc9f439323595f56ed50a697f3b476227674738b25ce710d61287cd79
+--> 0190624cc9f4
+[2/3] STEP 4/6: ENV MISE_DATA_DIR=/mise MISE_YES=1
+--> Using cache 8524ee23a5b4473027431adc35e10215dee7603d0d8e6127d19a0393c18ae111
+--> 8524ee23a5b4
+[2/3] STEP 5/6: RUN A=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') &&     curl -sL -o /tmp/mise.tar.gz https://github.com/jdx/mise/releases/download/v2026.8.14/mise-v2026.8.14-linux-$A.tar.gz &&     tar xzf /tmp/mise.tar.gz -C /usr/local --strip-components=1 && rm /tmp/mise.tar.gz
+/bin/sh: line 1: tar: command not found
+curl: (23) Failure writing output to destination, passed 16375 returned 0
+/bin/sh: line 1: wget: command not found
+time="2026-08-30T14:33:12+02:00" level=error msg="error unmounting container: unmounting build container \"\": layer not known"
+Error: building at STEP "RUN { [ -L /usr/local ] && mkdir -p "$(readlink /usr/local)"; mkdir -p /usr/local/bin; } &&     ARCH=$(uname -m) &&     case "$ARCH" in x86_64) ARCH=amd64;; aarch64) ARCH=arm64;; esac &&     TASK_URL="https://github.com/go-task/task/releases/latest/download/task_linux_${ARCH}.tar.gz" &&     (curl -fsSL "$TASK_URL" || wget -qO- "$TASK_URL") | tar -xzf - -C /usr/local/bin task": while running runtime: exit status 127
+charly: error: command "build": building check-mise: podman build failed: exit status 127
+charly subcommand exited 1

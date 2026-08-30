@@ -1,0 +1,28 @@
+WARNING: charly is a dev/worktree build (not installed at /usr/bin or /usr/local/bin); NOT loading the installed package's plugins from /usr/lib/charly/plugins (they may be built against a different charly version). Set CHARLY_PLUGIN_DIR to load plugins from a custom location.
+
+--- Building check-mise ---
+[2/3] STEP 1/8: FROM quay.io/fedora/fedora:43 AS mise-build
+[1/3] STEP 1/2: FROM scratch AS mise-consumer
+[3/3] STEP 1/24: FROM quay.io/fedora/fedora-minimal:43
+[1/3] STEP 2/2: COPY candy/mise-consumer/ /
+--> Using cache f8663c43bef5a12b1e76780f27ec7851328185d63a52ebefa9384673ffe844ff
+--> f8663c43bef5
+Trying to pull quay.io/fedora/fedora-minimal:43...
+[2/3] STEP 2/8: USER root
+--> Using cache 9454fe5c0a03b285f4f4670db41027a96a295d360ed3acf5f281cd04e414a474
+--> 9454fe5c0a03
+Getting image source signatures
+Copying blob sha256:07a3a6de86ce38ee2f3a4fe8d7e16e26f8a8d59f0a1b5243a7fd4e40e079b49e
+[2/3] STEP 3/8: RUN dnf -y install --setopt=install_weak_deps=False curl tar gzip
+--> Using cache 0190624cc9f439323595f56ed50a697f3b476227674738b25ce710d61287cd79
+--> 0190624cc9f4
+[2/3] STEP 4/8: ENV MISE_DATA_DIR=/mise MISE_YES=1
+--> Using cache 8524ee23a5b4473027431adc35e10215dee7603d0d8e6127d19a0393c18ae111
+--> 8524ee23a5b4
+[2/3] STEP 5/8: RUN A=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') && 
+Copying config sha256:d171b39896e19fd9f12392971bd75aeb62d159c15d160a9b7930617307baa9e1
+Writing manifest to image destination
+/bin/sh: -c: line 2: syntax error: unexpected end of file
+Error: building at STEP "RUN A=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') &&": while running runtime: exit status 2
+charly: error: command "build": building check-mise: podman build failed: exit status 2
+charly subcommand exited 1

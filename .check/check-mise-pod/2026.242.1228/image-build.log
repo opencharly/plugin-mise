@@ -1,0 +1,32 @@
+WARNING: charly is a dev/worktree build (not installed at /usr/bin or /usr/local/bin); NOT loading the installed package's plugins from /usr/lib/charly/plugins (they may be built against a different charly version). Set CHARLY_PLUGIN_DIR to load plugins from a custom location.
+
+--- Building check-mise ---
+[2/3] STEP 1/6: FROM quay.io/fedora/fedora:43 AS mise-build
+[1/3] STEP 1/2: FROM scratch AS mise-consumer
+[3/3] STEP 1/24: FROM quay.io/fedora/fedora-minimal:43
+[1/3] STEP 2/2: COPY candy/mise-consumer/ /
+Trying to pull quay.io/fedora/fedora-minimal:43...
+--> f8663c43bef5
+[2/3] STEP 2/6: USER root
+Getting image source signatures
+Copying blob sha256:07a3a6de86ce38ee2f3a4fe8d7e16e26f8a8d59f0a1b5243a7fd4e40e079b49e
+--> 9454fe5c0a03
+[2/3] STEP 3/6: RUN dnf -y install --setopt=install_weak_deps=False curl tar gzip
+Updating and loading repositories:
+ Fedora 43 - x86_64 - Updates           100% |   7.6 MiB/s |  11.4 MiB |  00m01s
+ Fedora 43 openh264 (From Cisco) - x86_ 100% |   5.3 KiB/s |   5.8 KiB |  00m01s
+ Fedora 43 - x86_64                     100% |   9.6 MiB/s |  35.7 MiB |  00m04s
+Repositories loaded.
+Package "curl-8.15.0-8.fc43.x86_64" is already installed.
+Package "tar-2:1.35-6.fc43.x86_64" is already installed.
+Package "gzip-1.13-4.fc43.x86_64" is already installed.
+
+Nothing to do.
+--> 0190624cc9f4
+[2/3] STEP 4/6: ENV MISE_DATA_DIR=/mise MISE_YES=1
+--> 8524ee23a5b4
+[2/3] STEP 5/6: RUN A=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') && \n    curl -sL -o /tmp/mise.tar.gz https://github.com/jdx/mise/releases/download/v2026.8.14/mise-v2026.8.14-linux-$A.tar.gz && \n    tar xzf /tmp/mise.tar.gz -C /usr/local --strip-components=1 && rm /tmp/mise.tar.gz
+/bin/sh: line 1: n: command not found
+Error: building at STEP "RUN A=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') && \n    curl -sL -o /tmp/mise.tar.gz https://github.com/jdx/mise/releases/download/v2026.8.14/mise-v2026.8.14-linux-$A.tar.gz && \n    tar xzf /tmp/mise.tar.gz -C /usr/local --strip-components=1 && rm /tmp/mise.tar.gz": while running runtime: exit status 127
+charly: error: command "build": building check-mise: podman build failed: exit status 127
+charly subcommand exited 1

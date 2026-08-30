@@ -102,8 +102,8 @@ func renderMiseStage(in spec.BuilderResolveInput, env spec.BuildEnv) spec.Builde
 	stage.WriteString("USER root\n")
 	stage.WriteString("RUN " + pkg + "\n")
 	stage.WriteString("ENV MISE_DATA_DIR=/mise MISE_YES=1\n")
-	stage.WriteString("RUN A=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') && \\n")
-	stage.WriteString("    curl -sL -o /tmp/mise.tar.gz https://github.com/jdx/mise/releases/download/" + miseVersion + "/mise-" + miseVersion + "-linux-$A.tar.gz && \\n")
+	stage.WriteString("RUN A=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') && \\\n")
+	stage.WriteString("    curl -sL -o /tmp/mise.tar.gz https://github.com/jdx/mise/releases/download/" + miseVersion + "/mise-" + miseVersion + "-linux-$A.tar.gz && \\\n")
 	stage.WriteString("    tar xzf /tmp/mise.tar.gz -C /usr/local --strip-components=1 && rm /tmp/mise.tar.gz\n")
 
 	if in.Manifest != "" && in.CopySrc != "" {
@@ -113,7 +113,7 @@ func renderMiseStage(in spec.BuilderResolveInput, env spec.BuildEnv) spec.Builde
 	} else {
 		// MINIMAL mode: provision mise + an empty system config; the candy's
 		// `mise:` verb steps install the tools in the main image.
-		stage.WriteString("RUN mkdir -p /mise-out && cp -a /mise/. /mise-out/ && printf '[tools]\\n' > /mise-out/config.toml\n")
+		stage.WriteString("RUN mkdir -p /mise && mise reshim && mkdir -p /mise-out && cp -a /mise/. /mise-out/ && printf '[tools]\\n' > /mise-out/config.toml\n")
 	}
 
 	artifacts := []string{
