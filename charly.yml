@@ -267,32 +267,6 @@ check-mise-ubuntu-pod:
             - check: the stage-installed tool resolves via the shims in the running pod
               id: pod-stage-tool-via-shims
               command: zig version
-check-mise-fedora-pod:
-    pod:
-        image: check-mise-fedora
-        disposable: true
-        lifecycle: dev
-        description: Fedora mise bed — the DETECTION path on fedora.
-        plan:
-            - check: mise is on PATH in the running pod
-              id: pod-mise-on-path
-              command: mise --version
-            - check: the stage-installed tool resolves via the shims in the running pod
-              id: pod-stage-tool-via-shims
-              command: zig version
-check-mise-ubuntu-pod:
-    pod:
-        image: check-mise-ubuntu
-        disposable: true
-        lifecycle: dev
-        description: Ubuntu 24.04 mise bed — the DETECTION path on ubuntu.
-        plan:
-            - check: mise is on PATH in the running pod
-              id: pod-mise-on-path
-              command: mise --version
-            - check: the stage-installed tool resolves via the shims in the running pod
-              id: pod-stage-tool-via-shims
-              command: zig version
 check-mise-ubuntu-2604-pod:
     pod:
         image: check-mise-ubuntu-2604
