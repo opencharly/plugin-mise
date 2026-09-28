@@ -1,8 +1,6 @@
-version: 2026.242.0000
 
 plugin-mise:
     candy:
-        version: 2026.242.0000
         description: |-
             The mise builder + verb plugin: provisions the mise dev-tool manager
             (jdx/mise) into images via a build-time multi-stage (builder:mise,
