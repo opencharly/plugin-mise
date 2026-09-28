@@ -1,6 +1,5 @@
 mise-consumer:
     candy:
-        version: 2026.242.0000
         description: |-
             Shared consumer candy for the mise check beds. It SHIPS a mise.toml so the
             embedded builder: mise: vocabulary's detect_file auto-triggers the mise
