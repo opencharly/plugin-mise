@@ -7,7 +7,6 @@
 # Declaring discover: is the whole fix: the candy is scanned, the CUE schema gate
 # applies, and the STOCK `charly box validate` step starts working with no workflow
 # change. This file declares no entities of its own - it only tells charly where to look.
-version: 2026.240.1943
 defaults:
     platform:
         - linux/amd64
@@ -31,7 +30,6 @@ discover:
 # Builder boxes (the stage bases)
 alpine-builder:
     candy:
-        version: 2026.242.0000
         base: alpine:3.24
         distro: [alpine:3.24, alpine]
         build: [apk]
@@ -41,7 +39,6 @@ alpine-builder:
         description: Alpine stage base for the mise builder (curl+tar toolchain).
 arch-builder:
     candy:
-        version: 2026.242.0000
         base: archlinux:latest
         distro: [arch]
         build: [pac]
@@ -51,13 +48,11 @@ arch-builder:
         description: Arch stage base for the mise builder (curl+tar toolchain).
 cachyos-builder:
     candy:
-        version: 2026.242.0000
         base: docker.io/cachyos/cachyos-v3@sha256:2f87e702822dc3bc1c527215ace3f7b1b20c5d9d4171bb78e012557be477d487
         produce: [mise]
         description: CachyOS stage base for the mise builder (curl+tar toolchain).
 omarchy-builder:
     candy:
-        version: 2026.242.0000
         base: archlinux:latest
         distro: [omarchy, arch]
         build: [pac]
@@ -67,7 +62,6 @@ omarchy-builder:
         description: Omarchy stage base for the mise builder (curl+tar toolchain).
 debian-builder:
     candy:
-        version: 2026.242.0000
         base: debian:13
         distro: [debian:13, debian]
         build: [deb]
@@ -77,13 +71,11 @@ debian-builder:
         description: Debian stage base for the mise builder (curl+tar toolchain).
 fedora-builder:
     candy:
-        version: 2026.242.0000
         base: quay.io/fedora/fedora:43
         produce: [mise]
         description: Fedora stage base for the mise builder (curl+tar toolchain).
 ubuntu-builder:
     candy:
-        version: 2026.242.0000
         base: ubuntu:24.04
         distro: [ubuntu:24.04, ubuntu]
         build: [deb]
@@ -93,7 +85,6 @@ ubuntu-builder:
         description: Ubuntu 24.04 stage base for the mise builder (curl+tar toolchain).
 ubuntu-2604-builder:
     candy:
-        version: 2026.242.0000
         base: ubuntu:26.04
         distro: [ubuntu-26.04, ubuntu]
         build: [deb]
