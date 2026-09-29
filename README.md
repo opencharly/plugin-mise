@@ -60,10 +60,10 @@ bases.
 
 ## Related
 
-- Owning skill: `/charly-image:image` — box composition and the builder
-  vocabulary (the plugin candy carries no `skill:` entity of its own; the gap is
-  tracked in
-  [opencharly/opencharly#291](https://github.com/opencharly/opencharly/issues/291)).
+- Owning skill: `/charly-image:mise` — the mise builder + `mise:` plan-step verb
+  reference (the plugin's user-facing surface; the candy carries its own
+  `mise-skill:` entity).
+- `/charly-image:image` — box composition and the builder vocabulary.
 - `/charly-image:layer` — the candy/plan-step authoring surface.
 - `/charly-internals:plugin` — the plugin/provider model.
 - [`opencharly/charly`](https://github.com/opencharly/charly) — the charly CLI.

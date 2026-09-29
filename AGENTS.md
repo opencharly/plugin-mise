@@ -23,6 +23,9 @@ Canonical files:
 
 ## Load these skills first (R0)
 
+- `/charly-image:mise` — the mise builder + `mise:` plan-step verb reference (the
+  plugin's user-facing surface). Load before changing the builder stage or the
+  verb's input schema.
 - `/charly-internals:plugin` — the plugin authoring reference: the `plugin:`
   block, the `builder` + `verb` provider classes, the per-plugin CUE-schema
   contract, placement.
