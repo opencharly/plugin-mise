@@ -5,24 +5,24 @@ mise-consumer:
             embedded builder: mise: vocabulary's detect_file auto-triggers the mise
             builder (DETECTION path): the builder STAGE copies the config, runs
             `mise install` in-stage, and the artifacts (installs + shims + config)
-            land in the image. The `mise:` verb step (OpEmit) installs bun in the
+            land in the image. The `mise:` verb step (OpEmit) installs ripgrep in the
             image, and the checks prove the stage install (zig), the verb install
-            (go), mise on PATH, and the verb's OpExecute leg (mise ls). The fixture
-            tools ship official prebuilds that need no libc at all (zig ships
-            fully-static tarballs; the Go distribution is pure static) so the SAME
+            (ripgrep), mise on PATH, and the verb's OpExecute leg (mise ls). The fixture
+            tools ship official static prebuilds (zig ships a fully-static tarball; ripgrep's
+            musl build needs no libc) so the SAME
             config installs on glibc AND musl bases (Alpine) — mise's python/node
             backends compile from source on musl where no C toolchain exists.
         bake_plugin:
-            - "@github.com/opencharly/plugin-mise/candy/plugin-mise:v2026.274.0618"
+            - plugin-mise
         plan:
-            - run: install go via the mise verb (OpEmit — mise use writes the config, installs, reshims)
-              mise: {command: use, tool: go@1.25}
+            - run: install ripgrep via the mise verb (OpEmit — mise use writes the config, installs, reshims)
+              mise: {command: use, tool: ripgrep}
             - check: the tool installed by the builder STAGE resolves via the shims
               id: stage-tool-via-shims
               command: zig version
             - check: the tool installed by the mise VERB resolves via the shims
               id: verb-tool-via-shims
-              command: go version
+              command: rg --version
             - check: mise is on PATH
               id: mise-on-path
               command: mise --version
