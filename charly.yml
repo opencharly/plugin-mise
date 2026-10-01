@@ -31,64 +31,50 @@ discover:
 alpine-builder:
     candy:
         base: alpine:3.24
-        distro: [alpine:3.24, alpine]
         build: [apk]
-        produce: [mise]
         candy:
             - curl-tar
         description: Alpine stage base for the mise builder (curl+tar toolchain).
 arch-builder:
     candy:
         base: archlinux:latest
-        distro: [arch]
         build: [pac]
-        produce: [mise]
         candy:
             - curl-tar
         description: Arch stage base for the mise builder (curl+tar toolchain).
 cachyos-builder:
     candy:
         base: docker.io/cachyos/cachyos-v3@sha256:2f87e702822dc3bc1c527215ace3f7b1b20c5d9d4171bb78e012557be477d487
-        produce: [mise]
         description: CachyOS stage base for the mise builder (curl+tar toolchain).
 omarchy-builder:
     candy:
         base: archlinux:latest
-        distro: [omarchy, arch]
         build: [pac]
-        produce: [mise]
         candy:
             - curl-tar
         description: Omarchy stage base for the mise builder (curl+tar toolchain).
 debian-builder:
     candy:
         base: debian:13
-        distro: [debian:13, debian]
         build: [deb]
-        produce: [mise]
         candy:
             - curl-tar
         description: Debian stage base for the mise builder (curl+tar toolchain).
 fedora-builder:
     candy:
         base: quay.io/fedora/fedora:43
-        produce: [mise]
         description: Fedora stage base for the mise builder (curl+tar toolchain).
 ubuntu-builder:
     candy:
         base: ubuntu:24.04
-        distro: [ubuntu:24.04, ubuntu]
         build: [deb]
-        produce: [mise]
         candy:
             - curl-tar
         description: Ubuntu 24.04 stage base for the mise builder (curl+tar toolchain).
 ubuntu-2604-builder:
     candy:
         base: ubuntu:26.04
-        distro: [ubuntu-26.04, ubuntu]
         build: [deb]
-        produce: [mise]
         candy:
             - curl-tar
         description: Ubuntu 26.04 LTS stage base for the mise builder (curl+tar toolchain; entity name dot-free — dots are reserved for dotted-path addressing).
@@ -133,7 +119,6 @@ check-mise-omarchy:
 check-mise-debian:
     candy:
         base: debian:13
-        distro: [debian:13, debian]
 
         builder:
             mise: debian-builder
@@ -150,7 +135,6 @@ check-mise-fedora:
 check-mise-ubuntu:
     candy:
         base: ubuntu:24.04
-        distro: [ubuntu:24.04, ubuntu]
 
         builder:
             mise: ubuntu-builder
@@ -159,7 +143,6 @@ check-mise-ubuntu:
 check-mise-ubuntu-2604:
     candy:
         base: ubuntu:26.04
-        distro: [ubuntu-26.04, ubuntu]
 
         builder:
             mise: ubuntu-2604-builder
