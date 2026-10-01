@@ -13,7 +13,7 @@ mise-consumer:
             config installs on glibc AND musl bases (Alpine) — mise's python/node
             backends compile from source on musl where no C toolchain exists.
         bake_plugin:
-            - "@github.com/opencharly/plugin-mise/candy/plugin-mise:v2026.274.0618"
+            - "@github.com/opencharly/plugin-mise/candy/plugin-mise:v2026.274.0750"
         plan:
             - run: install go via the mise verb (OpEmit — mise use writes the config, installs, reshims)
               mise: {command: use, tool: go@1.25}
