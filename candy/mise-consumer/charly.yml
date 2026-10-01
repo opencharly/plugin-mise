@@ -5,7 +5,7 @@ mise-consumer:
             embedded builder: mise: vocabulary's detect_file auto-triggers the mise
             builder (DETECTION path): the builder STAGE copies the config, runs
             `mise install` in-stage, and the artifacts (installs + shims + config)
-            land in the image. The `mise:` verb step (OpEmit) installs bun in the
+            land in the image. The `mise:` verb step (OpEmit) installs ripgrep in the
             image, and the checks prove the stage install (zig), the verb install
             (ripgrep), mise on PATH, and the verb's OpExecute leg (mise ls). The fixture
             tools ship official static prebuilds (zig ships a fully-static tarball; ripgrep's
