@@ -58,6 +58,34 @@ bases.
   builder boxes and check beds.
 - `.github/workflows/tag-on-merge.yml` — CalVer tag + `CHANGELOG/` on merge.
 
+## Venue precondition — a tool archive comes from the BUILD VENUE
+
+A `mise:` step that installs a tool fetches the archive from the network of the venue the build runs
+in — not from the host running `charly`. When a venue filters that CDN the step fails *inside the image
+build* with mise's own error:
+
+```
+mise ERROR Failed to install core:go@1.25: HTTP status client error (404 Not Found) for url
+  (https://dl.google.com/go/go1.25.14.linux-amd64.tar.gz)
+```
+
+That reads like a plugin defect and is not one. A `mise:` step carries an `env:` field, which is the
+authored lever — point mise's downloader at a mirror the venue can reach:
+
+```yaml
+- check: install go via mise, from a mirror the build venue can reach
+  mise:
+    command: use
+    tool: go@1.25
+    env:
+      MISE_GO_DOWNLOAD_MIRROR: https://mirrors.aliyun.com/golang
+      MISE_GO_SKIP_CHECKSUM: "1"
+```
+
+`charly` does not forward host environment variables into an image build, so the mirror must be
+authored in the step (or the step must avoid the CDN tool) rather than exported by whoever runs the
+build. See the `/charly-image:mise` skill for the measured CDN/mirror pair.
+
 ## Related
 
 - Owning skill: `/charly-image:mise` — the mise builder + `mise:` plan-step verb
