@@ -47,3 +47,4 @@ func invokeResolve(req *pb.InvokeRequest) (*pb.InvokeReply, error) {
 	}
 	return &pb.InvokeReply{ResultJson: j}, nil
 }
+
