@@ -1,0 +1,120 @@
+---
+name: mise
+description: 'The mise (`jdx/mise`) builder + plan-step verb — provision the mise
+  dev-tool
+
+  manager into images via the `external_builder: mise` multi-stage, and run
+
+  `mise: <command>` steps at image build / check / deploy. Use when composing
+
+  mise into a box or authoring a `mise:` step.'
+---
+
+# mise — the dev-tool manager builder + verb
+
+The mise plugin provisions [mise](https://mise.jdx.dev) (`jdx/mise`) into
+images and runs mise commands as plan steps. It contributes two
+capabilities, both served by `candy/plugin-mise`:
+
+| Capability | Surface |
+|---|---|
+| `builder:mise` | a build-time multi-stage (`OpResolve`) that provisions mise into images |
+| `verb:mise` | a plan-step verb — `mise: <command>` — `OpEmit` at image build, `OpExecute` at check/deploy |
+
+## Selecting the builder
+
+A candy opts into the mise multi-stage with its `external_builder: mise`
+field (the reserved word of an OUT-OF-TREE builder plugin). The generator
+resolves the word, `Invoke(OpResolve)`s the provider, and splices the
+returned stage PRE-main-FROM plus its artifacts POST-main-FROM. The stage
+is **distro-aware**: it picks the base from the image's builder box,
+installs a pinned mise release from the upstream tarball (Go-style arch
+mapping), stages `MISE_DATA_DIR` + shims, and writes
+`/etc/mise/config.toml` (the system-config path shims resolve against).
+See `/charly-image:layer` for the generic `external_builder:` mechanism.
+
+## Authoring a `mise:` step
+
+A plan step runs `mise: <command>`. The scalar value is the `command`
+primary-field shorthand (`mise: install` == `mise: {command: install}`);
+the exclusive fields live INSIDE the `mise:` map.
+
+```yaml
+- check: install go via mise
+  mise: install go@1.25
+```
+
+| Field | Meaning |
+|-------|---------|
+| `command` | the mise subcommand (also the scalar-sugar primary) — `install` / `use` / `run` / `exec` / `x` / `env` / `ls` / `doctor` / `version` / `shims` / `reshim` / `trust` / any string |
+| `args` | extra arguments passed to the mise command |
+| `tool` | a tool spec (e.g. `go@1.25`) |
+| `task` | a mise task name |
+| `config` | a config file path |
+| `tools` | a tool → version map |
+| `env` | environment variables for the run |
+| `run_as` | the user the step runs as |
+
+In the BUILD context the step's `OpEmit` renders the shell the step runs at
+image build (an act-script wrapped in `RUN` with the step's `run_as`); at
+check/deploy time `OpExecute` runs `mise <command>` on the venue.
+
+## Venue precondition — a tool archive comes from the BUILD VENUE
+
+A `mise:` step that installs a tool fetches that tool's archive from the
+network of the venue the build runs in, NOT from the host running
+`charly`. mise's own downloader is what performs the fetch, so the
+egress rules of the build venue decide whether it succeeds — and when a
+venue filters the CDN, the step fails inside the image build with
+mise's own error (`Failed to install core:go@1.25: HTTP status client
+error (404 Not Found) for url (...)`), which reads like a plugin bug and
+is not one.
+
+A `mise:` step carries an `env:` field, and that is the authored lever:
+point mise's downloader at a mirror reachable from the venue. For Go:
+
+```yaml
+- check: install go via mise, from a mirror the build venue can reach
+  mise:
+    command: use
+    tool: go@1.25
+    env:
+      MISE_GO_DOWNLOAD_MIRROR: https://mirrors.aliyun.com/golang
+      MISE_GO_SKIP_CHECKSUM: "1"   # a mirror's bytes are not the CDN's checksum
+```
+
+MEASURED 2026-10-08 on a dev host, inside the build venue rather than on
+the host (the distinction is the whole point):
+
+```
+$ podman run --rm quay.io/fedora/fedora:43 sh -c 'curl -s -o /dev/null -w "%{http_code}\n" <url>'
+https://dl.google.com/go/go1.25.14.linux-amd64.tar.gz        200
+https://mirrors.aliyun.com/golang/go1.25.14.linux-amd64.tar.gz  200
+```
+
+Both answer 200 here, so `check-mise-<distro>` — the R10 witness — has no
+precondition problem on THIS venue today. On a venue that DOES filter the
+Go CDN (measured 404 on 2026-10-03, same command, `opencharly/plugin-mise#13`),
+the same command returns 200 from the mirror, and the `env:` block above is
+the fix — no product change to `charly` or to this plugin is required.
+`charly` does not forward host environment variables into an image build, so
+the mirror has to be AUTHORED in the step (or the step has to avoid the CDN
+tool), not exported by whoever runs the build.
+
+## Verification
+
+`plan:` `check:` steps assert the plugin module + its self-contained
+`schema/mise.cue` ship. The live R10 witness is
+`charly check run check-mise-<distro>-pod` (declared in the repo's root
+`charly.yml`, one per distro charly supports): the shared `mise-consumer`'s
+`mise.toml` auto-triggers the DETECTION path, the builder stage installs a
+tool, the `mise:` verb step installs another, and the checks prove both
+resolve via the shims.
+
+## Cross-References
+
+- `/charly-image:image` — box composition and the builder vocabulary.
+- `/charly-image:layer` — candy authoring, the `external_builder:` mechanism,
+  and the plan-step verb catalog.
+- `/charly-internals:plugin` — the plugin/provider model (`builder` + `verb`
+  classes, placement, the per-plugin CUE-schema contract).
