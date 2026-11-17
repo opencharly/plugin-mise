@@ -48,3 +48,37 @@ func invokeResolve(req *pb.InvokeRequest) (*pb.InvokeReply, error) {
 	return &pb.InvokeReply{ResultJson: j}, nil
 }
 
+
+// invokeCollectContext handles the builder OpCollectContext: the per-candy stage-context keys the
+// host needs to drive this builder's multi-stage. It dispatches to the SAME shared
+// kit.BuilderCollectContext the four plugin-builder-* plugins use, so mise's keys are the ones the
+// shared render already produces rather than a second, drifting definition.
+func invokeCollectContext(req *pb.InvokeRequest) (*pb.InvokeReply, error) {
+	var in spec.BuilderCollectInput
+	if len(req.GetParamsJson()) > 0 {
+		if err := json.Unmarshal(req.GetParamsJson(), &in); err != nil {
+			return nil, fmt.Errorf("builder %q: decode collect-context input: %w", builderWord, err)
+		}
+	}
+	j, err := json.Marshal(spec.BuilderCollectReply{Context: kit.BuilderCollectContext(builderWord, in)})
+	if err != nil {
+		return nil, err
+	}
+	return &pb.InvokeReply{ResultJson: j}, nil
+}
+
+// invokeReverse handles the builder OpReverse: the teardown ops for a resolved stage context. Same
+// shared implementation as the collection leg, for the same reason.
+func invokeReverse(req *pb.InvokeRequest) (*pb.InvokeReply, error) {
+	var in spec.BuilderReverseInput
+	if len(req.GetParamsJson()) > 0 {
+		if err := json.Unmarshal(req.GetParamsJson(), &in); err != nil {
+			return nil, fmt.Errorf("builder %q: decode reverse input: %w", builderWord, err)
+		}
+	}
+	j, err := json.Marshal(spec.BuilderReverseReply{ReverseOps: kit.BuilderReverse(builderWord, in)})
+	if err != nil {
+		return nil, err
+	}
+	return &pb.InvokeReply{ResultJson: j}, nil
+}
