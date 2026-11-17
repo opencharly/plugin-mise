@@ -229,3 +229,9 @@ check-mise-ubuntu-pod:
             - check: the stage-installed tool resolves via the shims in the running pod
               id: pod-stage-tool-via-shims
               command: zig version
+            - check: the pod's guest really is the org's default Ubuntu, 26.04 (resolute)
+              # The two checks above prove mise and the staged tool WORK; neither says WHICH release
+              # they work on, so a revert to the 24.04 base would pass them unchanged. This is the
+              # assertion that makes the release move the thing the bed proves.
+              id: pod-guest-is-resolute
+              command: grep -q 'VERSION_CODENAME=resolute' /etc/os-release && grep -q '26.04' /etc/os-release
