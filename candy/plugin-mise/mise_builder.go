@@ -48,7 +48,6 @@ func invokeResolve(req *pb.InvokeRequest) (*pb.InvokeReply, error) {
 	return &pb.InvokeReply{ResultJson: j}, nil
 }
 
-
 // invokeCollectContext handles the builder OpCollectContext: the per-candy stage-context keys the
 // host needs to drive this builder's multi-stage. It dispatches to the SAME shared
 // kit.BuilderCollectContext the four plugin-builder-* plugins use, so mise's keys are the ones the

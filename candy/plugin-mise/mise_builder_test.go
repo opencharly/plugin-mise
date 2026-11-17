@@ -1,6 +1,7 @@
 package mise
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -36,5 +37,30 @@ func TestInvokeResolve_ReplyShape(t *testing.T) {
 	}
 	if !strings.Contains(brr.CopyBinary, "/usr/local/bin/mise") {
 		t.Fatalf("binary copy missing: %q", brr.CopyBinary)
+	}
+}
+
+// TestInvoke_DispatchesTheDeployTimeBuilderOps is the coverage the bed cannot
+// give: `Invoke` must answer BOTH deploy-time builder legs for a mise-composed
+// image, and only collect-context is reachable from a bed's deploy path in this
+// repo (no `disposable: true` target exercises teardown). Without the two
+// dispatch cases this test fails with the production error
+//
+//	mise: unsupported op "collect-context"
+//
+// which is exactly the defect opencharly/plugin-mise#22 reported.
+func TestInvoke_DispatchesTheDeployTimeBuilderOps(t *testing.T) {
+	for _, op := range []string{"collect-context", "reverse"} {
+		reply, err := provider{}.Invoke(context.Background(), &pb.InvokeRequest{Op: op})
+		if err != nil {
+			t.Fatalf("Invoke(%q): %v", op, err)
+		}
+		if len(reply.GetResultJson()) == 0 {
+			t.Fatalf("Invoke(%q): empty reply", op)
+		}
+		var probe map[string]any
+		if err := json.Unmarshal(reply.GetResultJson(), &probe); err != nil {
+			t.Fatalf("Invoke(%q): reply is not JSON: %v", op, err)
+		}
 	}
 }
