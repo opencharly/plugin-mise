@@ -14,10 +14,10 @@ import (
 // BuilderResolveReply rendered by the SHARED kit.BuilderResolve (R3) — the
 // distro-agnostic stage driven by the host-computed input.
 func TestInvokeResolve_ReplyShape(t *testing.T) {
-	req := &pb.InvokeRequest{ParamsJson: []byte(`{"candy":"demo","builder_ref":"cachyos-builder","stage_name":"demo-mise-build","copy_src":"candy/demo","manifest":"mise.toml","uid":1000,"gid":1000,"home":"/home/user","install_cmd":"mise install"}`)}
-	reply, err := invokeResolve(req)
+	req := &pb.InvokeRequest{Op: "resolve", ParamsJson: []byte(`{"candy":"demo","builder_ref":"cachyos-builder","stage_name":"demo-mise-build","copy_src":"candy/demo","manifest":"mise.toml","uid":1000,"gid":1000,"home":"/home/user","install_cmd":"mise install"}`)}
+	reply, err := provider{}.Invoke(context.Background(), req)
 	if err != nil {
-		t.Fatalf("invokeResolve: %v", err)
+		t.Fatalf("Invoke(resolve): %v", err)
 	}
 	var brr spec.BuilderResolveReply
 	if err := json.Unmarshal(reply.GetResultJson(), &brr); err != nil {
