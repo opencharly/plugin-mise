@@ -1,11 +1,13 @@
 package mise
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"strings"
 	"testing"
 
+	"github.com/opencharly/sdk/kit"
 	pb "github.com/opencharly/spec/proto"
 	"github.com/opencharly/spec/spec"
 )
@@ -14,10 +16,10 @@ import (
 // BuilderResolveReply rendered by the SHARED kit.BuilderResolve (R3) — the
 // distro-agnostic stage driven by the host-computed input.
 func TestInvokeResolve_ReplyShape(t *testing.T) {
-	req := &pb.InvokeRequest{ParamsJson: []byte(`{"candy":"demo","builder_ref":"cachyos-builder","stage_name":"demo-mise-build","copy_src":"candy/demo","manifest":"mise.toml","uid":1000,"gid":1000,"home":"/home/user","install_cmd":"mise install"}`)}
-	reply, err := invokeResolve(req)
+	req := &pb.InvokeRequest{Op: "resolve", ParamsJson: []byte(`{"candy":"demo","builder_ref":"cachyos-builder","stage_name":"demo-mise-build","copy_src":"candy/demo","manifest":"mise.toml","uid":1000,"gid":1000,"home":"/home/user","install_cmd":"mise install"}`)}
+	reply, err := provider{}.Invoke(context.Background(), req)
 	if err != nil {
-		t.Fatalf("invokeResolve: %v", err)
+		t.Fatalf("Invoke(resolve): %v", err)
 	}
 	var brr spec.BuilderResolveReply
 	if err := json.Unmarshal(reply.GetResultJson(), &brr); err != nil {
@@ -49,18 +51,41 @@ func TestInvokeResolve_ReplyShape(t *testing.T) {
 //	mise: unsupported op "collect-context"
 //
 // which is exactly the defect opencharly/plugin-mise#22 reported.
+// The provider serves its OWN word on the deploy-time legs too: the collect-context and reverse
+// replies equal kit's own for the literal word "mise", so a dispatch routed to any other builder
+// fails here (opencharly/plugin-mise#26 review). An op no builder serves is still refused.
 func TestInvoke_DispatchesTheDeployTimeBuilderOps(t *testing.T) {
-	for _, op := range []string{"collect-context", "reverse"} {
-		reply, err := provider{}.Invoke(context.Background(), &pb.InvokeRequest{Op: op})
-		if err != nil {
-			t.Fatalf("Invoke(%q): %v", op, err)
-		}
-		if len(reply.GetResultJson()) == 0 {
-			t.Fatalf("Invoke(%q): empty reply", op)
-		}
-		var probe map[string]any
-		if err := json.Unmarshal(reply.GetResultJson(), &probe); err != nil {
-			t.Fatalf("Invoke(%q): reply is not JSON: %v", op, err)
-		}
+	ctx := context.Background()
+
+	collect := spec.BuilderCollectInput{Candy: "c", Builder: builderWord}
+	params, _ := json.Marshal(collect)
+	reply, err := provider{}.Invoke(ctx, &pb.InvokeRequest{Op: "collect-context", ParamsJson: params})
+	if err != nil {
+		t.Fatalf("Invoke(collect-context): %v", err)
+	}
+	wantCtx, err := kit.BuilderCollectContext("mise", collect)
+	if err != nil {
+		t.Fatalf("kit.BuilderCollectContext(mise): %v", err)
+	}
+	want, _ := json.Marshal(spec.BuilderCollectReply{Context: wantCtx, Package: kit.BuilderPackageOutput("mise", "c")})
+	if !bytes.Equal(reply.GetResultJson(), want) {
+		t.Errorf("collect-context served another builder's reply:\n got %s\nwant %s", reply.GetResultJson(), want)
+	}
+
+	rev := spec.BuilderReverseInput{Candy: "c", Builder: builderWord, Context: map[string]any{
+		"tools": []any{"zig"}, "manifest": "mise.toml",
+	}}
+	params, _ = json.Marshal(rev)
+	reply, err = provider{}.Invoke(ctx, &pb.InvokeRequest{Op: "reverse", ParamsJson: params})
+	if err != nil {
+		t.Fatalf("Invoke(reverse): %v", err)
+	}
+	ops := kit.BuilderReverse("mise", rev)
+	if len(ops) == 0 {
+		t.Fatalf("kit.BuilderReverse(mise) yielded no teardown ops for a full context; the pin would be vacuous")
+	}
+	wantRev, _ := json.Marshal(spec.BuilderReverseReply{ReverseOps: ops})
+	if !bytes.Equal(reply.GetResultJson(), wantRev) {
+		t.Errorf("reverse served another builder's teardown:\n got %s\nwant %s", reply.GetResultJson(), wantRev)
 	}
 }
